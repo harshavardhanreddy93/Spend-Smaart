@@ -1,54 +1,48 @@
-Project Check-in 1: Scope, Schema, and Strategy
+## Project Check-in 1: Scope, Schema, and Strategy
 
-Fall 2026 | Due Week 7
+**Fall 2026 | Due Week 7**
 
-Name: Harsha Vardhan Reddy Kallu
-ID: Q294V924
-Instructor: Coday Farlow
-Date: October 4, 2026
+**Name:** Harsha Vardhan reddy kallu
 
-1. Problem Definition and Mobile Scope:
+**ID:** Q294V924
 
-College students often lose track of small, everyday expenses such as coffee, snacks, and transportation. At the end of the month, they may not know where their money went.
+**Instructor:** Coday Farlow
 
-SpendSmart is a simple Android app that lets a student:
+**Date:** 10/04/2026
 
-Log expenses in seconds
+---
 
-Sort expenses into categories
+# 1. Problem Definition and Mobile Scope
 
-Compare spending against a monthly budget for each category
+## Problem
 
-The goal is to provide a simple alternative to finance applications that may be too complex or require users to link a bank account.
+College students often lose track of small, everyday expenses such as coffee, snacks, and transport, and at the end of the month they do not know where their money went. Existing finance apps are either too complex or depend on linking a bank account. SpendSmart is a simple Android app that lets a student log expenses in seconds, sort them into categories, and compare spending against a monthly budget for each category.
 
-Target Platform
+## Target Platform
 
-Android (native mobile application)
+Android (native mobile application).
 
-Scope for the Semester
-In Scope
+## Scope for the Semester
 
-Add, edit, and delete expenses
+**In scope:**
 
-Create categories with a monthly budget
+- Add, edit, and delete expenses
+- Create categories with a monthly budget
+- View expense history with category names
+- See monthly totals per category compared with the budget
 
-View expense history with category names
+---
 
-See monthly totals per category compared with the budget
+# 2. Initial Database Design and Mechanics
 
-2. Initial Database Design and Mechanics
-Tables and Keys
-Category
+## Tables and Keys
 
-Primary Key: category_id
+- **Category** – primary key: category_id
+- **Expense** – primary key: expense_id; foreign key: category_id references Category(category_id)
 
-Expense
+## SQL
 
-Primary Key: expense_id
-
-Foreign Key: category_id references Category(category_id)
-
-SQL Schema
+```sql
 CREATE TABLE Category (
   category_id    INTEGER PRIMARY KEY,
   name           TEXT NOT NULL,
@@ -63,55 +57,93 @@ CREATE TABLE Expense (
   note         TEXT,
   FOREIGN KEY (category_id) REFERENCES Category(category_id)
 );
+```
 
-Logical Relationship
+## Logical Relationship
 
-The relationship between Category and Expense is one-to-many.
+The relationship is one-to-many. One Category can have many Expenses, and every Expense belongs to exactly one Category through the foreign key category_id. This link lets the app show each expense with its category name and total spending per category.
 
-One Category can have many Expenses, and every Expense belongs to exactly one Category through the foreign key category_id.
+## Five Example Queries in Relational Algebra
 
-This relationship allows the app to:
+**Query 1: Large purchases alert**
 
-Show each expense with its category name
+- Relational algebra: `π note, amount (σ amount > 50 (Expense))`
+- Purpose: Lists expenses over 50 dollars.
 
-Calculate total spending per category
+```sql
+SELECT note, amount
+FROM Expense
+WHERE amount > 50;
+```
 
-Compare category spending with the monthly budget
+**Query 2: Expense history screen**
 
-Five Example Queries in Relational Algebra
-S. No.	Relational Algebra	App Feature	Purpose
-1	π note, amount (σ amount > 50 (Expense))	Large Purchases Alert	Lists expenses over $50
-2	π expense_date, amount, name (Expense ⋈ Category)	Expense History Screen	Shows each expense with its category name
-3	π name (σ monthly_budget > 200 (Category))	Budget Overview	Finds categories with budgets above $200
-4	π expense_date, amount (σ name = 'Food' (Expense ⋈ Category))	Category Detail Screen	Shows all Food spending
-5	π category_id (Category) − π category_id (Expense)	Unused Category Suggestion	Finds categories with no expenses yet
-Explanation of Queries
+- Relational algebra: `π expense_date, amount, name (Expense ⋈ Category)`
+- Purpose: Shows each expense with its category name.
 
-Queries 2 and 4 use a natural join on category_id, which is how the foreign key connects the two tables.
+```sql
+SELECT e.expense_date, e.amount, c.name
+FROM Expense e
+JOIN Category c ON e.category_id = c.category_id;
+```
 
-Query 5 uses set difference to find category_id values that appear in Category but not in Expense.
+**Query 3: Budget overview**
 
-3. AI Utilization Plan
-Agents and Tools
+- Relational algebra: `π name (σ monthly_budget > 200 (Category))`
+- Purpose: Finds categories with budgets above 200 dollars.
 
-Claude: Explaining concepts, quizzing me, and reviewing my reasoning after I attempt a task myself.
+```sql
+SELECT name
+FROM Category
+WHERE monthly_budget > 200;
+```
 
-SQLite / DB Fiddle: Running and testing my SQL so I can verify results myself rather than trusting AI output.
+**Query 4: Category detail screen**
 
-Example Prompts
+- Relational algebra: `π expense_date, amount (σ name = 'Food' (Expense ⋈ Category))`
+- Purpose: Shows all Food spending.
 
-"Explain the difference between selection (σ) and projection (π) in relational algebra using a small example, then quiz me with three questions."
+```sql
+SELECT e.expense_date, e.amount
+FROM Expense e
+JOIN Category c ON e.category_id = c.category_id
+WHERE c.name = 'Food';
+```
 
-"Here is my relational algebra query and what I think it returns. Do not rewrite it. Tell me whether my logic is correct and explain why."
+**Query 5: Unused category suggestion**
 
-"My CREATE TABLE statement gives a foreign key error. Explain what the error message means and what to check, but do not give me the corrected code."
+- Relational algebra: `π category_id (Category) − π category_id (Expense)`
+- Purpose: Finds categories with no expenses yet.
 
-"What are the tradeoffs of storing dates as TEXT versus INTEGER in SQLite? Help me decide, but let me make the final choice."
+```sql
+SELECT category_id
+FROM Category
+EXCEPT
+SELECT category_id
+FROM Expense;
+```
 
-Building Self-Reliance
+**Notes:**
 
-I will always attempt each task on my own first, then use AI as a tutor to check my understanding instead of as a generator.
+- Queries 2 and 4 use a natural join on category_id, which is how the foreign key connects the two tables.
+- Query 5 uses set difference (EXCEPT in SQL) to find category_ids that appear in Category but not in Expense.
 
-I will not ask AI to produce my whole schema or app. After getting feedback, I will test every SQL statement myself, fix mistakes on my own, and keep a short log of what I learned and what I changed.
+---
 
-I will only submit work that I can explain in my own words.
+# 3. AI Utilization Plan
+
+## Agents and Tools
+
+- **Claude:** explaining concepts, quizzing me, and reviewing my reasoning after I attempt a task myself.
+- **SQLite / DB Fiddle:** running and testing my SQL so I verify results myself rather than trusting AI output.
+
+## Example Prompts
+
+- "Explain the difference between selection (σ) and projection (π) in relational algebra using a small example, then quiz me with three questions."
+- "Here is my relational algebra query and what I think it returns. Do not rewrite it. Tell me whether my logic is correct and explain why."
+- "My CREATE TABLE statement gives a foreign key error. Explain what the error message means and what to check, but do not give me the corrected code."
+- "What are the tradeoffs of storing dates as TEXT versus INTEGER in SQLite? Help me decide, but let me make the final choice."
+
+## Building Self-Reliance
+
+I will always attempt each task on my own first, then use AI as a tutor to check my understanding instead of as a generator. I will not ask AI to produce my whole schema or app. After getting feedback, I will test every SQL statement myself, fix mistakes on my own, and keep a short log of what I learned and what I changed. I will only submit work I can explain in my own words.
