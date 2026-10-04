@@ -7,8 +7,7 @@ ID: Q294V924
 Instructor: Coday Farlow
 Date: October 4, 2026
 
-1. Problem Definition and Mobile Scope
-Problem
+1. Problem Definition and Mobile Scope:
 
 College students often lose track of small, everyday expenses such as coffee, snacks, and transportation. At the end of the month, they may not know where their money went.
 
