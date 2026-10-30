@@ -150,6 +150,50 @@ CREATE TABLE Tag (
 );
  
 CREATE TABLE Expense_Tag (
+## 3. The Problem-Solving Journey
+
+### Functional Dependencies
+
+Functional dependencies found in the data, and the normal form each one violated in the early designs:
+
+| Functional dependency | Type | Problem it caused |
+|---|---|---|
+| `expense_id → expense_date, amount, note, category_id, method_id` | Partial (on part of key `(expense_id, tag_id)`) | Repeated expense data per tag; update anomaly (1NF → 2NF) |
+| `tag_id → tag_name` | Partial | Tag cannot exist without an expense; insertion anomaly (1NF → 2NF) |
+| `category_id → name, monthly_budget` | Transitive via `expense_id → category_id` | Budget repeated in every row; cannot add a category alone (2NF → 3NF) |
+| `method_id → method_name` | Transitive via `expense_id → method_id` | Method name repeated; lost when last expense deleted (2NF → 3NF) |
+
+Dependencies in the final 3NF tables (left side is always a key):
+
+| Table | Functional dependencies |
+|---|---|
+| `Category` | `category_id → name, monthly_budget` |
+| `Payment_Method` | `method_id → method_name` |
+| `Tag` | `tag_id → tag_name` |
+| `Expense` | `expense_id → category_id, method_id, amount, expense_date, note` |
+| `Expense_Tag` | `(expense_id, tag_id)` is the whole key; no non-key attributes |
+
+### Anomalies Encountered and How 3NF Resolves Them
+
+| Anomaly | Early design | Final 3NF structure |
+|---|---|---|
+| **Update** | Changing Food budget 200 → 250 edited every Food expense row; changing the Latte amount edited two rows | Budget lives in one `Category` row; amount lives in one `Expense` row |
+| **Insertion** | Could not add the category "Books" or the tag "weekend" without an expense | Insert directly into `Category` or `Tag` |
+| **Deletion** | Deleting the only Transport expense erased the Transport category and its $60 budget | `Category`, `Payment_Method`, and `Tag` rows exist independently of expenses |
+
+### Reflection on My Troubleshooting Process
+
+My first expanded design put everything into one table because it felt faster to build alongside the app. The first red flag was the `tags` column: one cell held several values, and I could not cleanly query "all expenses tagged campus." Splitting tags into rows fixed that, but then updating one expense's amount meant editing multiple rows. That made me ask what each column actually depends on, and writing out the functional dependencies is what made it click: expense details depend only on `expense_id`, not on the whole composite key. After 2NF I thought I was done, until I imagined adding a new category before any spending existed and saw I could not. That exposed the transitive dependency through `category_id`. The hardest part was not the mechanics but learning to ask "what determines this value?" for every column. Next time I would write the functional dependencies before drawing any tables.
+EOF_DOC
+
+git config user.name "$GH_USER"
+git config user.email "khvr220033@gmail.com"
+git add "Project check in-2.md"
+git commit -q -m "Update Project check in-2 with code formatting" || echo "No changes to commit"
+git push -q origin main
+git remote set-url origin "https://github.com/${GH_USER}/${GH_REPO}.git"
+
+echo "Done: https://github.com/${GH_USER}/${GH_REPO}/blob/main/Project%20check%20in-2.md"
   expense_id INTEGER NOT NULL,
   tag_id     INTEGER NOT NULL,
   PRIMARY KEY (expense_id, tag_id),
