@@ -1,15 +1,4 @@
-%%bash
-set -e
 
-GH_USER="harshavardhanreddy93"
-GH_REPO="Spend-Smaart"
-GH_TOKEN="PASTE_YOUR_TOKEN_HERE"
-
-rm -rf work_repo
-git clone -q "https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git" work_repo
-cd work_repo
-
-cat > "Project check in-2.md" <<'EOF_DOC'
 # Project Check-in 2: Normalization and Architectural Evolution
 
 Fall 2026 | Due Week 11 | SpendSmart (Android)
@@ -228,19 +217,3 @@ Dependencies in the final 3NF tables (left side is always a key):
 ### Reflection on My Troubleshooting Process
 
 My first expanded design put everything into one table because it felt faster to build alongside the app. The first red flag was the `tags` column: one cell held several values, and I could not cleanly query "all expenses tagged campus." Splitting tags into rows fixed that, but then updating one expense's amount meant editing multiple rows. That made me ask what each column actually depends on, and writing out the functional dependencies is what made it click: expense details depend only on `expense_id`, not on the whole composite key. After 2NF I thought I was done, until I imagined adding a new category before any spending existed and saw I could not. That exposed the transitive dependency through `category_id`. The hardest part was not the mechanics but learning to ask "what determines this value?" for every column. Next time I would write the functional dependencies before drawing any tables.
-EOF_DOC
-
-# ---- sanity checks before pushing ----
-if grep -q "\[cite" "Project check in-2.md"; then echo "ERROR: [cite] text found"; exit 1; fi
-FENCES=$(grep -c '^```' "Project check in-2.md")
-if [ $((FENCES % 2)) -ne 0 ]; then echo "ERROR: unclosed code block ($FENCES fences)"; exit 1; fi
-echo "Checks passed: no [cite] text, $FENCES code fences (balanced)"
-
-git config user.name "$GH_USER"
-git config user.email "khvr220033@gmail.com"
-git add "Project check in-2.md"
-git commit -q -m "Fix table rendering in Project check in-2" || echo "No changes to commit"
-git push -q origin main
-git remote set-url origin "https://github.com/${GH_USER}/${GH_REPO}.git"
-
-echo "Done: https://github.com/${GH_USER}/${GH_REPO}/blob/main/Project%20check%20in-2.md"
